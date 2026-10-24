@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Calles Seguras · Mapa de calor del Callao</title>
+<meta name="description" content="Calles Seguras: mapa de calor que muestra dónde y a qué hora se concentran los robos en el Callao, para consultar antes de salir. Prototipo con datos de ejemplo.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Public+Sans:wght@400;600;800&display=swap">
+<style>
+:root{
+  --bg:#F6F1E9; --surface:#FFFBF5; --ink:#1F2A33; --muted:#55616B; --line:#DDD2C2;
+  --accent:#B83A22; --sea:#CFE0E6; --street:#FFFBF5; --band:#1F2A33; --bandink:#FFFBF5;
+  --alta:#D94A38; --malta:#EE8A2E; --media:#E3B026; --menor:#3FA66B;
+  --display:'Oswald','Arial Narrow',Arial,sans-serif;
+  --body:'Public Sans',Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#141B21; --surface:#1D262E; --ink:#EEE7DC; --muted:#A9B3BB; --line:#2F3B45;
+  --accent:#F08A6E; --sea:#1F3540; --street:#3A4752; --band:#0E1418; color-scheme:dark}}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55;margin:0}
+img{max-width:100%;display:block}
+a{color:inherit}
+.in{max-width:1120px;margin:0 auto;padding-left:max(18px,env(safe-area-inset-left,0px));padding-right:max(18px,env(safe-area-inset-right,0px))}
+/* nav */
+nav{position:sticky;top:0;z-index:10;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+nav .in{display:flex;align-items:center;justify-content:space-between;gap:14px;min-height:62px;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.dots{display:flex;gap:4px}.dots i{width:11px;height:11px;border-radius:50%;display:block}
+.logo b{font-family:var(--display);font-size:24px;text-transform:uppercase;letter-spacing:.5px}
+.logo b span{color:var(--accent)}
+.links{display:flex;gap:18px;flex-wrap:wrap;font-weight:600;font-size:15px}
+.links a{text-decoration:none;color:var(--muted)}.links a:hover{color:var(--ink)}
+/* hero */
+.hero .in{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:40px;align-items:center;padding-block:56px 48px}
+.eyebrow{font-size:13px;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;color:var(--accent);margin:0 0 12px}
+.hero h1{font-family:var(--display);font-weight:700;font-size:clamp(44px,7vw,82px);line-height:.98;text-transform:uppercase;margin:0;text-wrap:balance}
+.hero h1 span{color:var(--accent)}
+.lead{font-size:19px;color:var(--muted);max-width:34em;margin:18px 0 26px}
+.btn{display:inline-block;font-weight:800;text-decoration:none;background:var(--accent);color:#FFFBF5;border-radius:10px;padding:13px 22px}
+.btn.alt{background:transparent;color:var(--ink);border:2px solid var(--ink);margin-left:10px}
+.hero figure{margin:0;position:relative}
+.hero figure img{border-radius:20px;border:3px solid var(--ink)}
+.hero figure img+img{position:absolute;width:62%;right:-6px;bottom:-34px;transform:rotate(3deg)}
+.legend-dots{display:flex;gap:16px;flex-wrap:wrap;margin-top:28px;font-size:14px;color:var(--muted)}
+.legend-dots span{display:inline-flex;align-items:center;gap:6px}.legend-dots i{width:12px;height:12px;border-radius:50%;display:block}
+/* secciones */
+section.s{padding-block:64px}
+h2.st{font-family:var(--display);font-weight:700;font-size:clamp(32px,4.5vw,48px);text-transform:uppercase;line-height:1.02;margin:0 0 14px}
+.sub{color:var(--muted);max-width:44em;margin:0 0 32px}
+.band{background:var(--band);color:var(--bandink)}
+.band .sub{color:#C9D3D9}
+.stat{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:40px;align-items:center}
+.big{font-family:var(--display);font-weight:700;font-size:clamp(48px,6vw,76px);line-height:1;margin:0;color:#F2B33D}
+.three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.three div{border:1px solid #3A4752;border-radius:14px;padding:18px}
+.three h3{margin:0 0 6px;font-size:18px}
+.three p{margin:0;color:#C9D3D9;font-size:15px}
+.src{font-size:13px;color:#C9D3D9;margin-top:18px}
+/* app */
+.grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:20px;align-items:start}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px}
+.card h2{font-family:var(--display);font-weight:500;font-size:20px;text-transform:uppercase;letter-spacing:.6px;margin:0 0 10px}
+.proto{display:inline-block;font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase;border:2px solid var(--accent);color:var(--accent);border-radius:20px;padding:4px 12px;margin-bottom:18px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.chip{font:600 14px var(--body);color:var(--ink);background:transparent;border:1.5px solid var(--line);border-radius:22px;padding:7px 14px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.chip:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+svg.map{width:100%;height:auto;display:block}
+.sector{cursor:pointer;stroke:var(--surface);stroke-width:3;transition:opacity .2s}
+.sector:hover{opacity:.85}
+.sector.sel{stroke:var(--ink);stroke-width:4}
+.lbl{font:700 13px var(--body);fill:#1F2A33;pointer-events:none}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:10px;font-size:13px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}.legend i{width:12px;height:12px;border-radius:3px;display:block}
+.note{font-size:12.5px;color:var(--muted);margin-top:8px}
+.level{display:inline-flex;align-items:center;gap:8px;font-weight:800;font-size:14px;border-radius:20px;padding:4px 12px;color:#1F2A33}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:14px 0}
+.stats .st2{border:1px solid var(--line);border-radius:10px;padding:10px}
+.stats b{display:block;font-family:var(--display);font-size:24px;font-weight:700;font-variant-numeric:tabular-nums}
+.stats small{color:var(--muted);font-size:12px}
+.tip{border-left:4px solid var(--accent);padding:6px 12px;margin:0;font-size:14px}
+.side{display:grid;gap:20px}
+form{display:grid;gap:10px}
+label{font-size:13px;font-weight:600;display:grid;gap:4px}
+select,input,textarea{font:15px var(--body);color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:8px;padding:8px 10px;width:100%}
+textarea{min-height:64px;resize:vertical}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+button.go{font:800 15px var(--body);background:var(--accent);color:#FFFBF5;border:0;border-radius:10px;padding:11px 16px;cursor:pointer}
+.ok{font-size:14px;border:1px solid var(--menor);border-radius:10px;padding:10px 12px}
+/* pasos */
+.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;counter-reset:p}
+.steps div{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px}
+.steps div::before{counter-increment:p;content:counter(p);display:flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:50%;background:var(--accent);color:#FFFBF5;font-family:var(--display);font-size:22px;margin-bottom:12px}
+.steps h3{margin:0 0 6px;font-size:19px}.steps p{margin:0;color:var(--muted)}
+/* equipo */
+.team{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.team div{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px}
+.team b{display:block;font-size:18px}.team span{color:var(--muted);font-size:14px}
+footer{border-top:1px solid var(--line);padding-block:26px;color:var(--muted);font-size:13.5px}
+@media (max-width:860px){
+  .hero .in,.stat,.grid{grid-template-columns:minmax(0,1fr)}
+  .three,.steps,.team{grid-template-columns:minmax(0,1fr)}
+  .hero figure img+img{position:static;width:100%;transform:none;margin-top:14px}
+  .links{display:none}
+}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
+</style>
+</head>
+<body>
+<nav><div class="in">
+  <a class="logo" href="#inicio"><span class="dots" aria-hidden="true"><i style="background:var(--alta)"></i><i style="background:var(--malta)"></i><i style="background:var(--media)"></i><i style="background:var(--menor)"></i></span><b>Calles <span>Seguras</span></b></a>
+  <div class="links"><a href="#problema">El problema</a><a href="#mapa">Mapa</a><a href="#como">Cómo funciona</a><a href="#equipo">Equipo</a></div>
+</div></nav>
+
+<header class="hero" id="inicio"><div class="in">
+  <div>
+    <p class="eyebrow">Callao · Seguridad ciudadana</p>
+    <h1>Consulta <span>antes de salir</span></h1>
+    <p class="lead">Calles Seguras es un mapa de calor que muestra, por colores, en qué zonas y a qué hora se concentran los robos en el Callao, para que vecinos, conductores y comerciantes decidan mejor por dónde moverse.</p>
+    <a class="btn" href="#mapa">Ver el mapa</a><a class="btn alt" href="#como">Cómo funciona</a>
+    <div class="legend-dots"><span><i style="background:var(--alta)"></i>Alta</span><span><i style="background:var(--malta)"></i>Media-alta</span><span><i style="background:var(--media)"></i>Media</span><span><i style="background:var(--menor)"></i>Menor</span></div>
+  </div>
+  <figure><img src="img/tito.jpg" alt="Ilustración de Tito, taxista del Callao, junto a su taxi"><img src="img/consulta.jpg" alt="Ilustración de Tito revisando el mapa en su celular antes de iniciar su recorrido"></figure>
+</div></header>
+
+<section class="s band" id="problema"><div class="in">
+  <div class="stat">
+    <div><p class="eyebrow" style="color:#F2B33D">El problema</p><p class="big">17<br>de cada 100</p></div>
+    <div><h2 class="st">Personas víctimas de robo en el Callao</h2><p class="sub">Durante el 2025, cerca de 17 de cada 100 personas de 15 años a más en el Callao fueron víctimas de robo o intento de robo de dinero, cartera o celular.</p></div>
+  </div>
+  <div class="three" style="margin-top:30px">
+    <div><h3>Datos oficiales</h3><p>Existen, pero están en tableros y reportes que una persona común no revisa ni sabe interpretar.</p></div>
+    <div><h3>WhatsApp y redes</h3><p>Avisan rápido, pero la información llega desordenada y se pierde entre mensajes.</p></div>
+    <div><h3>Noticias y comentarios</h3><p>Datos sueltos que casi siempre llegan cuando el robo ya ocurrió.</p></div>
+  </div>
+  <p class="src">Fuente del dato: Instituto Nacional de Estadística e Informática (INEI).</p>
+</div></section>
+
+<section class="s" id="mapa"><div class="in">
+  <h2 class="st">Mapa de riesgo</h2>
+  <p class="sub">Elige un horario y toca un sector para ver su nivel de riesgo, la franja más peligrosa y una recomendación.</p>
+  <span class="proto">Prototipo · datos de ejemplo</span>
+  <div class="grid">
+    <section class="card" aria-labelledby="t-mapa">
+      <h2 id="t-mapa">Mapa de riesgo por sector</h2>
+      <div class="chips" role="group" aria-label="Horario">
+        <button class="chip" data-h="manana" aria-pressed="false">Mañana</button>
+        <button class="chip" data-h="tarde" aria-pressed="false">Tarde</button>
+        <button class="chip" data-h="noche" aria-pressed="true">Noche</button>
+        <button class="chip" data-h="dia" aria-pressed="false">Todo el día</button>
+      </div>
+      <div class="mapbox">
+        <svg class="map" viewBox="0 0 400 500" role="img" aria-label="Mapa esquemático del Callao dividido en ocho sectores coloreados por nivel de riesgo">
+          <rect x="0" y="0" width="400" height="500" fill="var(--sea)"/>
+          <text x="22" y="250" transform="rotate(-90 22 250)" text-anchor="middle" style="font:600 12px var(--body);fill:var(--muted);letter-spacing:3px">OCÉANO PACÍFICO</text>
+          <g id="sectors"></g>
+          <g stroke="var(--street)" stroke-width="2" opacity=".55" fill="none" pointer-events="none">
+            <path d="M120 80 L385 70 M110 200 L385 190 M100 320 L385 305 M115 430 L385 425"/>
+            <path d="M170 20 L175 485 M310 22 L315 482"/>
+          </g>
+          <g id="labels"></g>
+        </svg>
+      </div>
+      <div class="legend" aria-label="Leyenda">
+        <span><i style="background:var(--alta)"></i>Alta (30 o más)</span>
+        <span><i style="background:var(--malta)"></i>Media-alta (20 a 29)</span>
+        <span><i style="background:var(--media)"></i>Media (10 a 19)</span>
+        <span><i style="background:var(--menor)"></i>Menor (menos de 10)</span>
+      </div>
+      <p class="note">Mapa esquemático y cifras ficticias para probar la idea con usuarios. La versión final usará datos del Mininter, el INEI y el Gobierno Regional del Callao.</p>
+    </section>
+
+    <div class="side">
+      <section class="card" aria-live="polite" aria-labelledby="t-zona">
+        <h2 id="t-zona">Sector seleccionado</h2>
+        <div id="detail"></div>
+      </section>
+
+      <section class="card" aria-labelledby="t-rep">
+        <h2 id="t-rep">Reportar un incidente</h2>
+        <form id="rep">
+          <div class="row">
+            <label for="r-tipo">Tipo
+              <select id="r-tipo"><option>Robo de celular</option><option>Robo de cartera o dinero</option><option>Robo de autopartes</option><option>Intento de robo</option><option>Otro</option></select>
+            </label>
+            <label for="r-sector">Sector
+              <select id="r-sector"></select>
+            </label>
+          </div>
+          <label for="r-hora">Hora aproximada<input id="r-hora" type="time" value="21:30"></label>
+          <label for="r-desc">Qué pasó (opcional)<textarea id="r-desc" placeholder="Ejemplo: dos personas en moto cerca del paradero"></textarea></label>
+          <button class="go" type="submit">Enviar reporte</button>
+        </form>
+        <div id="ok" class="ok" hidden></div>
+      </section>
+    </div>
+  </div>
+</div></section>
+
+<section class="s" id="como" style="padding-top:20px"><div class="in">
+  <h2 class="st">Cómo funciona</h2>
+  <p class="sub">Tres pasos, desde el celular o la computadora.</p>
+  <div class="steps">
+    <div><h3>Elige el horario</h3><p>Mañana, tarde, noche o todo el día. El riesgo cambia según la hora.</p></div>
+    <div><h3>Revisa tu zona</h3><p>Los colores muestran dónde se concentran los robos. Toca un sector para ver el detalle.</p></div>
+    <div><h3>Decide y reporta</h3><p>Planifica tu ruta con la recomendación y reporta lo que veas para mejorar el mapa.</p></div>
+  </div>
+</div></section>
+
+<section class="s" id="equipo" style="padding-top:20px"><div class="in">
+  <h2 class="st">Equipo</h2>
+  <p class="sub">Proyecto del curso Gestión de Proyectos, Escuela de Ingeniería Industrial, Universidad César Vallejo, 2026.</p>
+  <div class="team">
+    <div><b>Kimberly Díaz Montañez</b><span>Ingeniería Industrial</span></div>
+    <div><b>Rosmery Ramírez Sandoval</b><span>Ingeniería Industrial</span></div>
+    <div><b>Franco Villanueva Cruz</b><span>Ingeniería Industrial</span></div>
+  </div>
+</div></section>
+
+<footer><div class="in">Calles Seguras · Prototipo académico. El mapa es esquemático y las cifras por sector son de ejemplo; no representan datos reales de ninguna zona. Los reportes de este prototipo no se envían a la policía ni a ninguna entidad.</div></footer>
+<script>
+const S=[
+ {id:1,n:'Sector 1 · Norte',p:'110,20 240,20 235,130 100,140',c:[168,80]},
+ {id:2,n:'Sector 2 · Noreste',p:'240,20 385,25 380,125 235,130',c:[308,78]},
+ {id:3,n:'Sector 3 · Puerto',p:'100,140 235,130 240,250 95,255',c:[168,195]},
+ {id:4,n:'Sector 4 · Centro',p:'235,130 380,125 385,245 240,250',c:[310,190]},
+ {id:5,n:'Sector 5 · Costa',p:'95,255 240,250 235,370 105,375',c:[168,312]},
+ {id:6,n:'Sector 6 · Avenidas',p:'240,250 385,245 380,365 235,370',c:[310,308]},
+ {id:7,n:'Sector 7 · Sur',p:'105,375 235,370 240,480 120,485',c:[175,428]},
+ {id:8,n:'Sector 8 · Sureste',p:'235,370 380,365 385,480 240,480',c:[310,425]}
+];
+// Robos reportados por horario (cifras ficticias del prototipo)
+const D={
+ 1:{manana:6,tarde:11,noche:18,tipo:'Robo de celular',hora:'19:00 – 22:00'},
+ 2:{manana:4,tarde:7,noche:9,tipo:'Intento de robo',hora:'20:00 – 23:00'},
+ 3:{manana:14,tarde:22,noche:35,tipo:'Robo de autopartes',hora:'21:00 – 01:00'},
+ 4:{manana:12,tarde:26,noche:31,tipo:'Robo de cartera o dinero',hora:'18:00 – 22:00'},
+ 5:{manana:5,tarde:9,noche:16,tipo:'Robo de celular',hora:'20:00 – 23:00'},
+ 6:{manana:9,tarde:18,noche:24,tipo:'Robo de celular',hora:'18:00 – 21:00'},
+ 7:{manana:3,tarde:6,noche:8,tipo:'Intento de robo',hora:'21:00 – 23:00'},
+ 8:{manana:8,tarde:13,noche:21,tipo:'Robo de autopartes',hora:'22:00 – 02:00'}
+};
+const TIPS={alta:'Evita detenerte o esperar servicios en este sector de noche; si debes pasar, usa vías principales y avisa tu ruta.',
+ malta:'Mantén el celular guardado al caminar y prefiere paraderos iluminados.',
+ media:'Mantente atento en paraderos y cruces con poca gente.',
+ menor:'Riesgo menor en los registros. Igual mantén precauciones básicas.'};
+const LV=[['alta','Alta','var(--alta)',30,'alto'],['malta','Media-alta','var(--malta)',20,'medio-alto'],['media','Media','var(--media)',10,'medio'],['menor','Menor','var(--menor)',0,'menor']];
+let h='noche', sel=3;
+const val=(id)=>h==='dia'?D[id].manana+D[id].tarde+D[id].noche:D[id][h];
+const level=(v)=>{const t=h==='dia'?v/2:v;return LV.find(l=>t>=l[3]);};
+const ns='http://www.w3.org/2000/svg';
+const gS=document.getElementById('sectors'), gL=document.getElementById('labels');
+function draw(){
+  gS.innerHTML='';gL.innerHTML='';
+  S.forEach(s=>{
+    const lv=level(val(s.id));
+    const p=document.createElementNS(ns,'polygon');
+    p.setAttribute('points',s.p);p.setAttribute('class','sector'+(s.id===sel?' sel':''));
+    p.setAttribute('fill',lv[2]);p.setAttribute('tabindex','0');p.setAttribute('role','button');
+    p.setAttribute('aria-label',s.n+': riesgo '+lv[4]);
+    p.addEventListener('click',()=>{sel=s.id;render();});
+    p.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();sel=s.id;render();}});
+    gS.appendChild(p);
+    const t=document.createElementNS(ns,'text');
+    t.setAttribute('x',s.c[0]);t.setAttribute('y',s.c[1]);t.setAttribute('text-anchor','middle');t.setAttribute('class','lbl');
+    t.textContent='S'+s.id;gL.appendChild(t);
+  });
+}
+function detail(){
+  const s=S.find(x=>x.id===sel), v=val(sel), lv=level(v), d=D[sel];
+  const hl={manana:'mañana',tarde:'tarde',noche:'noche',dia:'todo el día'}[h];
+  document.getElementById('detail').innerHTML=
+   `<p style="margin:0 0 8px;font-weight:800;font-size:17px">${s.n}</p>
+    <span class="level" style="background:${lv[2]}">Riesgo ${lv[4]} · ${hl}</span>
+    <div class="stats">
+      <div class="st2"><b>${v}</b><small>robos reportados (ejemplo)</small></div>
+      <div class="st2"><b style="font-size:16px;line-height:1.3">${d.hora}</b><small>franja de mayor riesgo</small></div>
+      <div class="st2"><b style="font-size:16px;line-height:1.3">${d.tipo}</b><small>delito más frecuente</small></div>
+    </div>
+    <p class="tip"><strong>Recomendación:</strong> ${TIPS[lv[0]]}</p>`;
+}
+function render(){draw();detail();document.getElementById('r-sector').value=String(sel);}
+document.querySelectorAll('.chip').forEach(b=>b.addEventListener('click',()=>{
+  h=b.dataset.h;document.querySelectorAll('.chip').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));render();}));
+const rs=document.getElementById('r-sector');
+S.forEach(s=>{const o=document.createElement('option');o.value=s.id;o.textContent=s.n;rs.appendChild(o);});
+rs.addEventListener('change',()=>{sel=+rs.value;render();});
+document.getElementById('rep').addEventListener('submit',e=>{
+  e.preventDefault();
+  const ok=document.getElementById('ok');
+  ok.textContent='Gracias. En este prototipo tu reporte se guarda solo en esta pantalla: no se envía a la policía ni a ninguna entidad. En la versión final, cada reporte se verificará antes de aparecer en el mapa.';
+  ok.hidden=false;
+});
+render();
+</script>
+</body>
+</html>
